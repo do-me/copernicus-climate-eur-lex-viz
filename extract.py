@@ -2,7 +2,8 @@
 # dependencies = [
 #   "duckdb",
 #   "pandas",
-#   "plotly"
+#   "plotly",
+#   "openpyxl", "kaleido"
 # ]
 # ///
 
@@ -32,12 +33,14 @@ WHERE
     AND regexp_matches(text, '(?i)climate|carbon|ghg|emissions')
             
     -- 3. AND title must start with ANY of these words
-    AND regexp_matches(title, '^(?i)(decision|regulation|directive|communication|joint communication|commission delegated regulation|commission implementing regulation)')
+    AND regexp_matches(title, '^(?i)(decision|regulation|directive|communication)') --|joint communication|commission delegated regulation|commission implementing regulation)')
             
 ORDER BY date DESC
 """).df()
 
 con.close()
+
+df.to_excel("query_results.xlsx")
 
 # 1. Data Preparation
 df['year'] = pd.to_datetime(df['date']).dt.year
@@ -63,7 +66,7 @@ fig = px.bar(
     color_discrete_sequence=sci_palette,
     template='plotly_white',
     barmode='stack',
-    category_orders={"year": sorted(plot_df['year'].unique())}
+    category_orders={"year": sorted(plot_df['year'].unique()) }
 )
 
 # 4. Add the Cumulative Totals on top (Scatter trace)
@@ -118,5 +121,6 @@ fig.update_layout(
 )
 
 # Show and Save
+fig.write_image("query_results.png", width=1600, height=1200, scale=2)
 fig.show()
 fig.write_html("index.html", include_plotlyjs='cdn')
